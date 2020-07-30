@@ -2467,8 +2467,12 @@ netsnmp_add_varbind_to_cache(netsnmp_agent_session *asp, int vbcount,
                     (netsnmp_tree_cache *)realloc(asp->treecache,
                             sizeof(netsnmp_tree_cache) *
                             asp->treecache_len);
-                if (asp->treecache == NULL)
+                if (asp->treecache == NULL) {
+                    asp->treecache_num = 0;
+                    asp->treecache_len = 0;
+                    snmp_log(LOG_ERR, "treecache realloc failed\n");
                     return NULL;
+                }
                 memset(asp->treecache + cacheid, 0,
                        sizeof(netsnmp_tree_cache) * (CACHE_GROW_SIZE));
             }
@@ -2684,7 +2688,7 @@ netsnmp_create_subtree_cache(netsnmp_agent_session *asp)
                     (n + asp->pdu->errindex * r) * sizeof(struct varbind_list *));
 
             if (!asp->bulkcache) {
-                DEBUGMSGTL(("snmp_agent:bulk", "Bulkcache malloc failed\n"));
+                snmp_log(LOG_ERR, "snmp_agent:bulk Bulkcache malloc failed\n");
                 return SNMP_ERR_GENERR;
             }
         }
@@ -2730,7 +2734,7 @@ netsnmp_create_subtree_cache(netsnmp_agent_session *asp)
                             /*
                              * XXXWWW: ack!!! 
                              */
-                            DEBUGMSGTL(("snmp_agent", "NextVar malloc failed\n"));
+                            snmp_log(LOG_ERR, "snmp_agent NextVar malloc failed\n");
                         } else {
                             vbptr = vbptr->next_variable;
                             vbptr->name_length = 0;
